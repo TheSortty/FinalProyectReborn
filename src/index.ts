@@ -44,7 +44,7 @@ async function startServer() {
         }
 
         // Iniciar el servidor Express en el puerto especificado
-        const PORT = process.env.PORT || 3001;
+        const PORT = process.env.PORT || 3000;
         app.listen(PORT, () => {
             console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
         });

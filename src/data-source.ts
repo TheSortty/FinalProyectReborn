@@ -4,10 +4,9 @@ import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 
 dotenv.config();
-
-
+//ola
 // Asegurar la creación de la base de datos
-async function ensureDatabaseExists() {
+export async function ensureDatabaseExists() {
     try {
         const connection = await mysql.createConnection({
             host: process.env.DB_HOST,
@@ -23,9 +22,6 @@ async function ensureDatabaseExists() {
         process.exit(1);
     }
 }
-
-// Esperar a que se asegure la base de datos
-await ensureDatabaseExists();
 
 // Configuración del DataSource
 export const AppDataSource = new DataSource({
@@ -43,12 +39,3 @@ export const AppDataSource = new DataSource({
     migrations: ["dist/migration/*.js"], // Archivos compilados de migraciones
     subscribers: [],
 });
-
-// Inicializar el DataSource
-try {
-    await AppDataSource.initialize();
-    console.log("Conexión con la base de datos establecida.");
-} catch (error) {
-    console.error("Error al inicializar la conexión con la base de datos:", error);
-    process.exit(1);
-}

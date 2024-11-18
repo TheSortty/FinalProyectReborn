@@ -188,7 +188,7 @@ export class PedidoVentaController {
                     return;
                 }
     
-                let pedidoDetalle = pedido.detalles.find(d => d.producto.id === detalle.idproducto);
+                let pedidoDetalle = (await pedido.detalles).find(d => d.producto.id === detalle.idproducto);
                 if (pedidoDetalle) {
                     pedidoDetalle.cantidad = detalle.cantidad;
                     pedidoDetalle.subtotal = detalle.subtotal;
@@ -197,8 +197,8 @@ export class PedidoVentaController {
                     pedidoDetalle.producto = producto;
                     pedidoDetalle.cantidad = detalle.cantidad;
                     pedidoDetalle.subtotal = detalle.subtotal;
-                    pedidoDetalle.pedidoVenta = pedido;
-                    pedido.detalles.push(pedidoDetalle);
+                    pedidoDetalle.pedidoVenta = Promise.resolve(pedido);
+                    (await pedido.detalles).push(pedidoDetalle);
                 }
     
                 // Guardar el detalle actualizado
@@ -215,5 +215,29 @@ export class PedidoVentaController {
         }
     };
     
-
+    static deletePedido: RequestHandler = async (req, res): Promise<void> => {
+        const { id } = req.params;
+    
+        try {
+            // Buscar el pedido
+            const pedido = await AppDataSource.manager.findOne(PedidoVenta, { where: { id: Number(id) }, relations: ["detalles"] });
+            if (!pedido) {
+                res.status(404).json({ message: `Pedido con ID ${id} no encontrado.` });
+                return;
+            }
+    
+            // Eliminar los detalles del pedido
+            for (const detalle of await pedido.detalles) {
+                await AppDataSource.manager.remove(detalle);
+            }
+    
+            // Eliminar el pedido
+            await AppDataSource.manager.remove(pedido);
+    
+            res.status(200).json({ message: "Pedido eliminado exitosamente" });
+        } catch (error) {
+            console.error("Error al eliminar el pedido:", error);
+            res.status(500).json({ message: "Error interno del servidor", error: error instanceof Error ? error.message : "" });
+        }
+    };
 }

@@ -26,16 +26,16 @@ await ensureDatabaseExists();
 export const AppDataSource = new DataSource({
     type: "mysql",
     host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT) || 3306,
+    port: Number(process.env.DB_PORT),
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     synchronize: false, // IMPORTANTE: Desactívalo en producción para evitar cambios automáticos en la base de datos
-    dropSchema: false, // Solo actívalo si necesitas limpiar la base de datos durante desarrollo
-    migrationsRun: true, // Ejecuta automáticamente las migraciones pendientes
+    dropSchema: true, // Solo actívalo si necesitas limpiar la base de datos durante desarrollo
+    migrationsRun: false, // Ejecuta automáticamente las migraciones pendientes
     logging: ["error", "warn"], // Mostrar solo errores y advertencias
-    entities: ["dist/entity/**/*.js"], // Archivos compilados de entidades
-    migrations: ["dist/migration/**/*.js"], // Archivos compilados de migraciones
+    entities: ["dist/entity/*.js"], // Archivos compilados de entidades
+    migrations: ["dist/migration/*.js"], // Archivos compilados de migraciones
     subscribers: [],
 });
 // Inicializar el DataSource

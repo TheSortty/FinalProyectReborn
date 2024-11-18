@@ -32,7 +32,7 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     synchronize: false, // IMPORTANTE: Desactívalo en producción para evitar cambios automáticos en la base de datos
-    dropSchema: true, // Solo actívalo si necesitas limpiar la base de datos durante desarrollo
+    dropSchema: false, // Solo actívalo si necesitas limpiar la base de datos durante desarrollo
     migrationsRun: false, // Ejecuta automáticamente las migraciones pendientes
     logging: ["error", "warn"], // Mostrar solo errores y advertencias
     entities: ["dist/entity/*.js"], // Archivos compilados de entidades

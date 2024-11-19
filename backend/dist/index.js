@@ -11,15 +11,7 @@ dotenv.config();
 const app = express();
 // Configurar CORS para permitir solicitudes desde el frontend
 app.use(cors({
-    origin: (origin, callback) => {
-        const allowedOrigins = ["http://127.0.0.1:5500", "http://127.0.0.1:5500/"];
-        if (allowedOrigins.includes(origin || "")) {
-            callback(null, true);
-        }
-        else {
-            callback(new Error("No permitido por CORS"));
-        }
-    },
+    origin: "*", // Permitir solicitudes de cualquier origen
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
 }));

@@ -21,11 +21,13 @@ export class PedidoVentaController {
             if (!cliente) {
                 throw new Error("El cliente no existe.");
             }
-            // Verificar que el número de comprobante no este duplicado
+            // **Eliminada la verificación de duplicidad del número de comprobante**
+            /*
             const comprobanteExistente = await queryRunner.manager.findOne(PedidoVenta, { where: { nroComprobante } });
             if (comprobanteExistente) {
                 throw new Error(`El número de comprobante ${nroComprobante} ya existe. Debe ser único.`);
             }
+            */
             // Verificar que no haya productos duplicados en el detalle
             const productoIds = detalles.map((detalle) => detalle.idproducto);
             const productosDuplicados = productoIds.filter((id, index) => productoIds.indexOf(id) !== index);
@@ -151,7 +153,7 @@ export class PedidoVentaController {
     };
     static updatePedido = async (req, res) => {
         const { id } = req.params;
-        const { fechaPedido, nroComprobante, formaPago, totalPedido, idcliente, detalles } = req.body;
+        const { idcliente, fechaPedido, nroComprobante, formaPago, detalles } = req.body;
         try {
             // Buscar el pedido
             const pedido = await AppDataSource.manager.findOne(PedidoVenta, { where: { id: Number(id) }, relations: ["detalles"] });
@@ -159,37 +161,40 @@ export class PedidoVentaController {
                 res.status(404).json({ message: `Pedido con ID ${id} no encontrado.` });
                 return;
             }
-            // Actualizar los campos del pedido
+            // Verificar que el cliente exista antes de asignarlo
+            const cliente = await AppDataSource.manager.findOne(Cliente, { where: { id: idcliente } });
+            if (!cliente) {
+                res.status(404).json({ message: "El cliente no existe." });
+                return;
+            }
+            pedido.cliente = cliente; // Ahora TypeScript sabe que no es null
             pedido.fechaPedido = new Date(fechaPedido);
             pedido.nroComprobante = nroComprobante;
             pedido.formaPago = formaPago;
-            pedido.totalPedido = totalPedido;
-            // Actualizar los detalles del pedido
+            // Actualizar detalles (igual que antes)
+            const detallesActuales = await pedido.detalles;
+            for (const detalle of detallesActuales) {
+                await AppDataSource.manager.remove(detalle); // Eliminar todos los detalles actuales
+            }
+            let totalPedido = 0;
             for (const detalle of detalles) {
                 const producto = await AppDataSource.manager.findOne(Producto, { where: { id: detalle.idproducto } });
                 if (!producto) {
                     res.status(404).json({ message: `Producto con ID ${detalle.idproducto} no encontrado.` });
                     return;
                 }
-                let pedidoDetalle = (await pedido.detalles).find(d => d.producto.id === detalle.idproducto);
-                if (pedidoDetalle) {
-                    pedidoDetalle.cantidad = detalle.cantidad;
-                    pedidoDetalle.subtotal = detalle.subtotal;
-                }
-                else {
-                    pedidoDetalle = new PedidoVentaDetalle();
-                    pedidoDetalle.producto = producto;
-                    pedidoDetalle.cantidad = detalle.cantidad;
-                    pedidoDetalle.subtotal = detalle.subtotal;
-                    pedidoDetalle.pedidoVenta = Promise.resolve(pedido);
-                    (await pedido.detalles).push(pedidoDetalle);
-                }
-                // Guardar el detalle actualizado
-                await AppDataSource.manager.save(pedidoDetalle);
+                const nuevoDetalle = new PedidoVentaDetalle();
+                nuevoDetalle.idproducto = detalle.idproducto;
+                nuevoDetalle.cantidad = detalle.cantidad;
+                nuevoDetalle.subtotal = producto.precioVenta * detalle.cantidad;
+                nuevoDetalle.pedidoVenta = Promise.resolve(pedido);
+                await AppDataSource.manager.save(nuevoDetalle);
+                totalPedido += nuevoDetalle.subtotal;
             }
-            // Guardar el pedido actualizado
+            pedido.totalPedido = totalPedido;
+            // Guardar cambios
             await AppDataSource.manager.save(pedido);
-            res.status(200).json({ message: "Pedido actualizado exitosamente", pedido });
+            res.status(200).json({ message: "Pedido actualizado exitosamente.", pedido });
         }
         catch (error) {
             console.error("Error al actualizar el pedido:", error);

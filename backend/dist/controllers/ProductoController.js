@@ -30,4 +30,23 @@ export class ProductoController {
             res.status(500).json({ message: "Error interno del servidor" });
         }
     };
+    //Obtenener productos por Id
+    static getProductoById = async (req, res) => {
+        const { id } = req.params; // Obtener el ID del producto desde los parámetros
+        try {
+            // Buscar el producto en la base de datos
+            const producto = await AppDataSource.manager.findOneBy(Producto, { id: Number(id) });
+            // Verificar si el producto existe
+            if (!producto) {
+                res.status(404).json({ message: `Producto con ID ${id} no encontrado.` });
+                return; // Terminar la ejecución sin devolver explícitamente un valor
+            }
+            // Enviar el producto encontrado como respuesta
+            res.status(200).json(producto);
+        }
+        catch (error) {
+            console.error("Error al obtener el producto:", error);
+            res.status(500).json({ message: "Error interno del servidor" });
+        }
+    };
 }

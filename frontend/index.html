@@ -1,105 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedidos de Venta</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frontend - Pedidos de Venta</title>
+  <link rel="stylesheet" href="styles/styles.css">
 </head>
-
 <body>
-    <header>
-        <h1>Gestión de Pedidos de Venta</h1>
-    </header>
-    <main>
-        <section id="order-list-section">
-            <h2>Lista de Pedidos</h2>
-            <table id="orders-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Fecha del Pedido</th>
-                        <th>Número de Comprobante</th>
-                        <th>Forma de Pago</th>
-                        <th>Total</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Los pedidos se insertarán aquí dinámicamente -->
-                </tbody>
-            </table>
-        </section>
-
-        <!-- Formulario para crear un nuevo pedido -->
-        <section id="order-form-section">
-            <h2 id="form-title">Crear Pedido</h2>
-            <form id="order-form">
-                <div>
-                    <label for="client-select">Cliente:</label>
-                    <select id="client-select" required>
-                        <option value="">Seleccione un cliente</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="order-date">Fecha del Pedido:</label>
-                    <input type="date" id="order-date" required>
-                </div>
-                <div>
-                    <label for="order-number">Número de Comprobante:</label>
-                    <input type="number" id="order-number" required>
-                </div>
-                <div>
-                    <label for="payment-method">Forma de Pago:</label>
-                    <input type="text" id="payment-method" required>
-                </div>
-                <div id="products-container">
-                    <h3>Productos</h3>
-                    <button type="button" id="add-product-btn">Agregar Producto</button>
-                </div>
-                <div id="order-total">
-                    <strong>Total del Pedido:</strong> $<span id="total-amount">0.00</span>
-                </div>
-                <button type="submit" id="save-order-btn">Guardar Pedido</button>
-            </form>
-        </section>
-
-        <!-- Formulario para editar un pedido (oculto por defecto) -->
-        <section id="edit-order-form-section" style="display: none;">
-            <h2 id="edit-form-title">Editar Pedido</h2>
-            <form id="edit-order-form">
-                <div>
-                    <label for="edit-client-select">Cliente:</label>
-                    <select id="edit-client-select" required>
-                        <option value="">Seleccione un cliente</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="edit-order-date">Fecha del Pedido:</label>
-                    <input type="date" id="edit-order-date" required>
-                </div>
-                <div>
-                    <label for="edit-order-number">Número de Comprobante:</label>
-                    <input type="number" id="edit-order-number" required>
-                </div>
-                <div>
-                    <label for="edit-payment-method">Forma de Pago:</label>
-                    <input type="text" id="edit-payment-method" required>
-                </div>
-                <div id="edit-products-container">
-                    <h3>Productos</h3>
-                    <button type="button" id="edit-add-product-btn">Agregar Producto</button>
-                </div>
-                <div id="edit-order-total">
-                    <strong>Total del Pedido:</strong> $<span id="edit-total-amount">0.00</span>
-                </div>
-                <button type="submit" id="edit-save-order-btn">Actualizar Pedido</button>
-                <button type="button" id="cancel-edit-order-btn">Cancelar</button>
-            </form>
-        </section>
-    </main>
-    <script src="./dist/main.js" type="module"></script>
+  <header>
+    <h1>Gestión de Pedidos de Venta</h1>
+  </header>
+  <main id="app">
+    <h2>Lista de Pedidos de Venta</h2>
+    <div id="pedidos-container">
+      <!-- La grilla de pedidos se generará aquí -->
+    </div>
+  </main>
+  
+  <script src="dist/app.js" defer></script>
 </body>
-
 </html>

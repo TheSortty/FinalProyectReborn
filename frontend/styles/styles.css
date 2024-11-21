@@ -1,0 +1,44 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+  }
+  
+  header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  main {
+    padding: 1rem;
+  }
+  
+  .pedidos-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 1rem;
+  }
+  
+  .pedidos-table th, .pedidos-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .pedidos-table th {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .pedidos-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .pedidos-table tr:hover {
+    background-color: #ddd;
+  }
+  

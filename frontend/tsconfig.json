@@ -1,11 +1,19 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*.ts"]
+    "compilerOptions": {
+        "target": "ES6", // Especifica a qué versión de JS compilar
+        "module": "ESNext", // Usa módulos compatibles con navegadores modernos
+        "strict": true, // Activa todas las verificaciones estrictas de TypeScript
+        "outDir": "./dist", // Carpeta de salida para los archivos compilados
+        "rootDir": "./src", // Carpeta raíz donde están los archivos .ts
+        "esModuleInterop": true, // Permite importar módulos CommonJS
+        "forceConsistentCasingInFileNames": true, // Enforce consistent casing
+        "skipLibCheck": true // Omite la verificación de tipos en las dependencias
+    },
+    "include": [
+        "src/**/*.ts"
+    ], // Incluye todos los archivos .ts en la carpeta src
+    "exclude": [
+        "node_modules",
+        "dist"
+    ] // Excluye estas carpetas de la compilación
 }

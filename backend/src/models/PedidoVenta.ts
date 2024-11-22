@@ -1,5 +1,11 @@
-// PedidoVenta.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from "typeorm";
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    JoinColumn,
+    OneToMany,
+} from "typeorm";
 import { Cliente } from "./Cliente.js";
 import { PedidoVentaDetalle } from "./PedidoVentaDetalle.js";
 
@@ -24,6 +30,7 @@ export class PedidoVenta {
     @Column({ type: "decimal", precision: 10, scale: 2, name: "totalPedido", nullable: false })
     totalPedido!: number;
 
+    // Columna para borrado logico
     @Column({ type: "int", name: "borrado", default: 0 })
     borrado!: number;
 

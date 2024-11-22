@@ -1,22 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Frontend - Pedidos de Venta</title>
-  <link rel="stylesheet" href="styles/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Pedidos</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <header>
-    <h1>Gestión de Pedidos de Venta</h1>
-  </header>
-  <main id="app">
-    <h2>Lista de Pedidos de Venta</h2>
-    <div id="pedidos-container">
-      <!-- La grilla de pedidos se generará aquí -->
+    <div class="container">
+        <h1>Gestión de Pedidos</h1>
+        <button id="createPedidoBtn" class="btn">Crear Pedido</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="pedidosTableBody">
+                <!-- Aquí se cargará dinámicamente la lista de pedidos -->
+            </tbody>
+        </table>
     </div>
-  </main>
-  
-  <script src="dist/app.js" defer></script>
+
+    <!-- Modal para Crear/Editar Pedido -->
+    <div id="pedidoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Crear Pedido</h2>
+            <form id="pedidoForm">
+                <div class="form-group">
+                    <label for="clienteSelect">Cliente:</label>
+                    <select id="clienteSelect" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="nroComprobante">Nro Comprobante:</label>
+                    <input type="number" id="nroComprobante" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="productosContainer">Productos:</label>
+                    <div id="productosContainer">
+                        <!-- Productos se renderizarán dinámicamente aquí -->
+                    </div>
+                    <button type="button" id="addProductoBtn" class="btn">Añadir Producto</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="totalPedido">Total:</label>
+                    <span id="totalPedido">0.00</span>
+                </div>
+
+                <button type="submit" class="btn">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para eliminar un pedido -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Confirmar Eliminación</h2>
+            <p>¿Estás seguro de que deseas eliminar este pedido?</p>
+            <button id="confirmDeleteBtn" class="btn btn-danger">Eliminar</button>
+            <button id="cancelDeleteBtn" class="btn">Cancelar</button>
+        </div>
+    </div>
+
+    <script src="dist/script.js" defer></script>
 </body>
+
 </html>

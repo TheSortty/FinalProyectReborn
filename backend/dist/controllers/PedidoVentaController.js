@@ -5,6 +5,7 @@ import { PedidoVentaDetalle } from "../models/PedidoVentaDetalle.js";
 import { Cliente } from "../models/Cliente.js";
 import { Producto } from "../models/Producto.js";
 export class PedidoVentaController {
+    // Método para crear un nuevo pedido
     static createPedido = async (req, res) => {
         const queryRunner = AppDataSource.createQueryRunner();
         try {
@@ -21,13 +22,6 @@ export class PedidoVentaController {
             if (!cliente) {
                 throw new Error("El cliente no existe.");
             }
-            // **Eliminada la verificación de duplicidad del número de comprobante**
-            /*
-            const comprobanteExistente = await queryRunner.manager.findOne(PedidoVenta, { where: { nroComprobante } });
-            if (comprobanteExistente) {
-                throw new Error(`El número de comprobante ${nroComprobante} ya existe. Debe ser único.`);
-            }
-            */
             // Verificar que no haya productos duplicados en el detalle
             const productoIds = detalles.map((detalle) => detalle.idproducto);
             const productosDuplicados = productoIds.filter((id, index) => productoIds.indexOf(id) !== index);
@@ -83,20 +77,7 @@ export class PedidoVentaController {
             await queryRunner.release();
         }
     };
-    // M3todo estatico para obtener todos los pedidos
-    static getAllPedidosDef = async (req, res) => {
-        try {
-            const pedidos = await AppDataSource.manager.find(PedidoVenta, {
-                where: { borrado: 0 },
-                relations: ["cliente", "detalles", "detalles.producto"],
-            });
-            res.status(200).json(pedidos);
-        }
-        catch (error) {
-            console.error("Error al obtener pedidos:", error);
-            res.status(500).json({ message: "Error interno del servidor" });
-        }
-    };
+    // Método para obtener todos los pedidos (solo los no borrados)
     static getAllPedidos = async (req, res) => {
         try {
             const pedidos = await AppDataSource.manager.find(PedidoVenta, {
@@ -110,53 +91,34 @@ export class PedidoVentaController {
             res.status(500).json({ message: "Error interno del servidor" });
         }
     };
-    // Método para obtener un pedido por su ID
+    // Método para obtener un pedido por su ID (solo si no está borrado)
     static getPedidoById = async (req, res) => {
         const { id } = req.params;
         try {
-            // Usar QueryBuilder para obtener el pedido junto con las relaciones
-            const pedido = await AppDataSource.manager.createQueryBuilder(PedidoVenta, "pedido")
-                .leftJoinAndSelect("pedido.cliente", "cliente")
-                .leftJoinAndSelect("pedido.detalles", "detalles")
-                .leftJoinAndSelect("detalles.producto", "producto")
-                .where("pedido.id = :id", { id: Number(id) })
-                .getOne();
-            // Mostrar la consulta SQL generada
-            console.log(AppDataSource.manager.createQueryBuilder(PedidoVenta, "pedido").getSql());
-            // Verificar si el pedido existe
+            const pedido = await AppDataSource.manager.findOne(PedidoVenta, {
+                where: { id: Number(id), borrado: 0 },
+                relations: ["cliente", "detalles", "detalles.producto"],
+            });
             if (!pedido) {
                 res.status(404).json({ message: `El pedido con ID ${id} no fue encontrado.` });
                 return;
             }
-            // Consulta adicional para obtener los detalles del pedido
-            const detalles = await AppDataSource.manager.find(PedidoVentaDetalle, {
-                where: { pedidoVenta: { id: pedido.id } },
-                relations: ["producto"],
-            });
-            // Asignar manualmente los detalles usando un bucle
-            detalles.forEach(async (detalle) => {
-                const pedidoDetalle = new PedidoVentaDetalle();
-                pedidoDetalle.idproducto = detalle.idproducto;
-                pedidoDetalle.cantidad = detalle.cantidad;
-                pedidoDetalle.subtotal = detalle.subtotal;
-                pedidoDetalle.pedidoVenta = Promise.resolve(pedido);
-                // Guardar cada detalle en la base de datos
-                await AppDataSource.manager.save(pedidoDetalle);
-            });
-            // Devolver el pedido encontrado con los detalles
-            res.status(200).json({ ...pedido, detalles });
+            res.status(200).json(pedido);
         }
         catch (error) {
             console.error("Error al obtener el pedido:", error);
-            res.status(500).json({ message: "Error interno del servidor", error: error instanceof Error ? error.message : "" });
+            res.status(500).json({ message: "Error interno del servidor" });
         }
     };
+    // Método para actualizar un pedido
     static updatePedido = async (req, res) => {
         const { id } = req.params;
         const { idcliente, fechaPedido, nroComprobante, formaPago, detalles } = req.body;
         try {
-            // Buscar el pedido
-            const pedido = await AppDataSource.manager.findOne(PedidoVenta, { where: { id: Number(id) }, relations: ["detalles"] });
+            const pedido = await AppDataSource.manager.findOne(PedidoVenta, {
+                where: { id: Number(id), borrado: 0 },
+                relations: ["detalles"],
+            });
             if (!pedido) {
                 res.status(404).json({ message: `Pedido con ID ${id} no encontrado.` });
                 return;
@@ -167,15 +129,12 @@ export class PedidoVentaController {
                 res.status(404).json({ message: "El cliente no existe." });
                 return;
             }
-            pedido.cliente = cliente; // Ahora TypeScript sabe que no es null
+            pedido.cliente = cliente;
             pedido.fechaPedido = new Date(fechaPedido);
             pedido.nroComprobante = nroComprobante;
             pedido.formaPago = formaPago;
-            // Actualizar detalles (igual que antes)
-            const detallesActuales = await pedido.detalles;
-            for (const detalle of detallesActuales) {
-                await AppDataSource.manager.remove(detalle); // Eliminar todos los detalles actuales
-            }
+            // Eliminar detalles actuales y agregar nuevos
+            await AppDataSource.manager.delete(PedidoVentaDetalle, { pedidoVenta: { id: pedido.id } });
             let totalPedido = 0;
             for (const detalle of detalles) {
                 const producto = await AppDataSource.manager.findOne(Producto, { where: { id: detalle.idproducto } });
@@ -198,36 +157,16 @@ export class PedidoVentaController {
         }
         catch (error) {
             console.error("Error al actualizar el pedido:", error);
-            res.status(500).json({ message: "Error interno del servidor", error: error instanceof Error ? error.message : "" });
+            res.status(500).json({ message: "Error interno del servidor" });
         }
     };
-    static deletePedidoDef = async (req, res) => {
-        const { id } = req.params;
-        try {
-            // Buscar el pedido
-            const pedido = await AppDataSource.manager.findOne(PedidoVenta, { where: { id: Number(id) }, relations: ["detalles"] });
-            if (!pedido) {
-                res.status(404).json({ message: `Pedido con ID ${id} no encontrado.` });
-                return;
-            }
-            // Eliminar los detalles del pedido
-            for (const detalle of await pedido.detalles) {
-                await AppDataSource.manager.remove(detalle);
-            }
-            // Eliminar el pedido
-            await AppDataSource.manager.remove(pedido);
-            res.status(200).json({ message: "Pedido eliminado exitosamente" });
-        }
-        catch (error) {
-            console.error("Error al eliminar el pedido:", error);
-            res.status(500).json({ message: "Error interno del servidor", error: error instanceof Error ? error.message : "" });
-        }
-    };
+    // Borrado lógico del pedido
     static deletePedido = async (req, res) => {
         const { id } = req.params;
         try {
-            // Buscar el pedido
-            const pedido = await AppDataSource.manager.findOne(PedidoVenta, { where: { id: Number(id) } });
+            const pedido = await AppDataSource.manager.findOne(PedidoVenta, {
+                where: { id: Number(id) },
+            });
             if (!pedido) {
                 res.status(404).json({ message: `Pedido con ID ${id} no encontrado.` });
                 return;
@@ -239,13 +178,13 @@ export class PedidoVentaController {
         }
         catch (error) {
             console.error("Error al borrar lógicamente el pedido:", error);
-            res.status(500).json({ message: "Error interno del servidor", error: error instanceof Error ? error.message : "" });
+            res.status(500).json({ message: "Error interno del servidor" });
         }
     };
+    // Método para generar un PDF del pedido
     static generatePDF = async (req, res) => {
         const { id } = req.params;
         try {
-            // Buscar el pedido por ID
             const pedido = await AppDataSource.manager.findOne(PedidoVenta, {
                 where: { id: Number(id) },
                 relations: ["cliente", "detalles", "detalles.producto"],
@@ -254,9 +193,12 @@ export class PedidoVentaController {
                 res.status(404).json({ message: "Pedido no encontrado." });
                 return;
             }
-            // Crear un documento PDF
+            // Validar si el pedido esta borrado logicamente
+            if (pedido.borrado === 1) {
+                res.status(400).json({ message: "No se puede generar un PDF para un pedido borrado lógicamente." });
+                return;
+            }
             const doc = new PDFDocument();
-            // Configurar encabezados y metadatos
             res.setHeader("Content-Type", "application/pdf");
             res.setHeader("Content-Disposition", `attachment; filename=pedido_${id}.pdf`);
             // Encabezado del PDF

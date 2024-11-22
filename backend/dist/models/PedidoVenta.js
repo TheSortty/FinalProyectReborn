@@ -7,8 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-// PedidoVenta.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, } from "typeorm";
 import { Cliente } from "./Cliente.js";
 import { PedidoVentaDetalle } from "./PedidoVentaDetalle.js";
 let PedidoVenta = class PedidoVenta {
@@ -18,6 +17,7 @@ let PedidoVenta = class PedidoVenta {
     nroComprobante;
     formaPago;
     totalPedido;
+    // Columna para borrado logico
     borrado;
     detalles;
 };

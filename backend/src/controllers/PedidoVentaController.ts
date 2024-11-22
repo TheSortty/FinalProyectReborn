@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { Request, Response } from 'express';
 import { Equal } from "typeorm";
 import { AppDataSource } from "../data-source.js";
 import PDFDocument from "pdfkit";
@@ -7,6 +8,8 @@ import { PedidoVentaDetalle } from "../models/PedidoVentaDetalle.js";
 import { Cliente } from "../models/Cliente.js";
 import { Producto } from "../models/Producto.js";
 import { DetallePedido } from "../interfaces/DetallePedido.js";
+import { Between } from "typeorm";
+
 
 export class PedidoVentaController {
     // Método para crear un nuevo pedido
@@ -14,11 +17,11 @@ export class PedidoVentaController {
         const queryRunner = AppDataSource.createQueryRunner();
 
         try {
-            const { idcliente, nroComprobante, formaPago, detalles } = req.body;
+            const { idcliente, nroComprobante, fechaPedido, formaPago, detalles } = req.body;
 
             // Validar datos requeridos
-            if (!idcliente || !nroComprobante || !formaPago || !detalles) {
-                res.status(400).json({ message: "Faltan datos requeridos (Cliente, Nro Comprobante, Forma de Pago, Detalles)." });
+            if (!idcliente || !nroComprobante || !fechaPedido || !formaPago || !detalles) {
+                res.status(400).json({ message: "Faltan datos requeridos (Cliente, Nro Comprobante, Fecha de Pedido, Forma de Pago, Detalles)." });
                 return;
             }
 
@@ -42,6 +45,7 @@ export class PedidoVentaController {
             // Crear cabecera del pedido
             const pedido = new PedidoVenta();
             pedido.nroComprobante = nroComprobante;
+            pedido.fechaPedido = fechaPedido; // Asignar la fecha de pedido
             pedido.formaPago = formaPago;
             pedido.totalPedido = 0;
             pedido.cliente = cliente;
@@ -77,7 +81,7 @@ export class PedidoVentaController {
             pedido.totalPedido = totalPedido;
             await queryRunner.manager.save(pedido);
 
-            // Confirmar transaccion
+            // Confirmar transacción
             await queryRunner.commitTransaction();
             res.status(201).json({ message: "Pedido creado exitosamente", pedido });
         } catch (error) {
@@ -94,6 +98,7 @@ export class PedidoVentaController {
             await queryRunner.release();
         }
     };
+
 
     // Método para obtener todos los pedidos (solo los no borrados)
     static getAllPedidos: RequestHandler = async (req, res) => {
@@ -269,3 +274,57 @@ export class PedidoVentaController {
         }
     };
 }
+export const getPedidoByComprobante = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { nroComprobante } = req.params;
+        const pedidoVenta = await AppDataSource.manager.findOneBy(PedidoVenta, {
+            nroComprobante: parseInt(nroComprobante),
+        });
+
+        if (!pedidoVenta) {
+            res.status(404).json({ message: 'Pedido de venta no encontrado' });
+            return;
+        }
+
+        res.status(200).json(pedidoVenta);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al buscar el pedido de venta', error });
+    }
+};
+
+export const getPedidosByFecha = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { fechaInicio, fechaFin } = req.query;
+
+        if (!fechaInicio || !fechaFin) {
+            res.status(400).json({ message: 'Debe proporcionar fecha de inicio y fecha de fin.' });
+            return;
+        }
+
+        const inicio = new Date(fechaInicio as string);
+        const fin = new Date(fechaFin as string);
+
+        if (isNaN(inicio.getTime()) || isNaN(fin.getTime())) {
+            res.status(400).json({ message: 'Formato de fecha inválido.' });
+            return;
+        }
+
+        console.log(`Buscando pedidos entre ${inicio.toISOString()} y ${fin.toISOString()}`);
+
+        const pedidos = await AppDataSource.manager.find(PedidoVenta, {
+            where: {
+                fechaPedido: Between(inicio, fin),
+            },
+        });
+
+        if (!pedidos || pedidos.length === 0) {
+            res.status(404).json({ message: 'No se encontraron pedidos en el rango de fechas proporcionado.' });
+            return;
+        }
+
+        res.status(200).json(pedidos);
+    } catch (error) {
+        console.error('Error en getPedidosByFecha:', error);
+        res.status(500).json({ message: 'Error interno al buscar pedidos por fecha', error });
+    }
+};

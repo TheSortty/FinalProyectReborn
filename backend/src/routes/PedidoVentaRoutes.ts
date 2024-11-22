@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { PedidoVentaController } from "../controllers/PedidoVentaController.js";
+import { getPedidoByComprobante, getPedidosByFecha, PedidoVentaController } from "../controllers/PedidoVentaController.js";
 
 const router = Router();
 
@@ -10,5 +10,9 @@ router.get("/pedidos/:id", PedidoVentaController.getPedidoById); // Obtener un p
 router.put("/pedidos/:id", PedidoVentaController.updatePedido); // Actualizar un pedido existente
 router.delete("/pedidos/:id", PedidoVentaController.deletePedido); // Borrado lógico de un pedido
 router.get("/pedidos/:id/pdf", PedidoVentaController.generatePDF); // Generar un PDF para un pedido
+router.get('/pedidos/comprobante/:nroComprobante', getPedidoByComprobante); // Obtener un pedido por su nroComprobante
+router.get('/pedidos/fechas', getPedidosByFecha);
+
+
 
 export default router;
